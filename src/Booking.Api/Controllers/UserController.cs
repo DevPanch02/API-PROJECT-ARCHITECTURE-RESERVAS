@@ -7,6 +7,7 @@ using Booking.Application.DataBase.User.Queries.GetUserById;
 using Booking.Application.DataBase.User.Queries.GetUserData;
 using Booking.Application.Exceptions;
 using Booking.Application.Features;
+using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Booking.Api.Controllers
@@ -20,8 +21,15 @@ namespace Booking.Api.Controllers
         [HttpPost("create")]
         public async Task<IActionResult> Create(
                 [FromBody] CreateUserModel model,
-                [FromServices] ICreateUserCommand createUser)
+                [FromServices] ICreateUserCommand createUser,
+                [FromServices] IValidator<CreateUserModel> validator
+            )
         {
+            var validate = await validator.ValidateAsync(model);
+            if (!validate.IsValid)
+                return StatusCode(StatusCodes.Status400BadRequest, ResponseApiService.Response(StatusCodes.Status400BadRequest, validate.Errors));
+            
+
             var data = await createUser.ExecuteAsync(model);
             if (data == null)
                 return StatusCode(StatusCodes.Status500InternalServerError, ResponseApiService.Response(StatusCodes.Status500InternalServerError, null, "User creation failed."));
@@ -33,8 +41,14 @@ namespace Booking.Api.Controllers
         [HttpPut("update")]
         public async Task<IActionResult> Update(
                 [FromBody] UpdateUserModel model,
-                [FromServices] IUpdateUserCommand updateUser)
+                [FromServices] IUpdateUserCommand updateUser,
+                [FromServices] IValidator<UpdateUserModel> validator
+            )
         {
+            var validate = await validator.ValidateAsync(model);
+            if (!validate.IsValid)
+                return StatusCode(StatusCodes.Status400BadRequest, ResponseApiService.Response(StatusCodes.Status400BadRequest, validate.Errors));
+
             var data = await updateUser.ExecuteAsync(model);
             if (data == null)
                 return StatusCode(StatusCodes.Status500InternalServerError, ResponseApiService.Response(StatusCodes.Status500InternalServerError, null, "User update failed."));
@@ -45,8 +59,14 @@ namespace Booking.Api.Controllers
         [HttpPut("update-password")]
         public async Task<IActionResult> UpdatePassword(
                 [FromBody] UpdateUserPasswordModel model,
-                [FromServices] IUpdateUserPasswordCommand updateUser)
+                [FromServices] IUpdateUserPasswordCommand updateUser,
+                [FromServices] IValidator<UpdateUserPasswordModel> validator
+            )
         {
+            var validate = await validator.ValidateAsync(model);
+            if (!validate.IsValid)
+                return StatusCode(StatusCodes.Status400BadRequest, ResponseApiService.Response(StatusCodes.Status400BadRequest, validate.Errors));
+
             var data = await updateUser.ExecuteAsync(model);
             if (!data)
                 return StatusCode(StatusCodes.Status500InternalServerError, ResponseApiService.Response(StatusCodes.Status500InternalServerError, null, "User password update failed."));
@@ -90,10 +110,16 @@ namespace Booking.Api.Controllers
             return StatusCode(StatusCodes.Status200OK, ResponseApiService.Response(StatusCodes.Status200OK, user, "User retrieved successfully."));
         }
 
-        [HttpGet("username-by-password/{userName}/{password}")]
+        [HttpGet("username-by-password")]
         public async Task<IActionResult> GetUserNameByPassword(string userName, string password, 
-            [FromServices] IGetUserPasswordQuery userNamePassword)
+            [FromServices] IGetUserPasswordQuery userNamePassword,
+            [FromServices] IValidator<(string, string)> validator
+            )
         {
+            var validate = await validator.ValidateAsync((userName, password));
+            if (!validate.IsValid)
+                return StatusCode(StatusCodes.Status400BadRequest, ResponseApiService.Response(StatusCodes.Status400BadRequest, validate.Errors));
+
             var user = await userNamePassword.ExecuteAsync(userName,password);
             if (user == null)
                 return StatusCode(StatusCodes.Status204NoContent, ResponseApiService.Response(StatusCodes.Status204NoContent, null, "User not found."));
