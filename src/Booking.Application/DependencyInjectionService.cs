@@ -17,6 +17,7 @@ using Booking.Application.DataBase.User.Command.UpdateUserPassword;
 using Booking.Application.DataBase.User.Queries.GetAllUser;
 using Booking.Application.DataBase.User.Queries.GetUserById;
 using Booking.Application.DataBase.User.Queries.GetUserData;
+using Booking.Application.Validators.Customer;
 using Booking.Application.Validators.User;
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
@@ -60,13 +61,17 @@ namespace Booking.Application
 
             #endregion
 
-            #region validators
+            #region validators user
             services.AddScoped<IValidator<CreateUserModel>, CreateUserValidation>();
             services.AddScoped<IValidator<UpdateUserModel>, UpdateUserValidation>();
             services.AddScoped<IValidator<UpdateUserPasswordModel>, UpdatePasswordUserValidation>();
             services.AddScoped<IValidator<(string,string)>, GetUserPasswordValidator>();
             #endregion
 
+            #region customers validators
+            services.AddScoped<IValidator<CreateCustomerModel>, CreateCustomerValidator>();
+            services.AddScoped<IValidator<UpdateCustomerModel>, UpdateCustomerValidation>();
+            #endregion
             return services;
         }
     }
