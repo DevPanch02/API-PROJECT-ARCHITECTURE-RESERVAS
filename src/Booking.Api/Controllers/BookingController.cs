@@ -1,11 +1,10 @@
 ﻿using Booking.Application.DataBase.Bookings.Command.CreateBooking;
-using Booking.Application.DataBase.Bookings.Command.UpdateBooking;
 using Booking.Application.DataBase.Bookings.Queries.GetAllBooking;
 using Booking.Application.DataBase.Bookings.Queries.GetBookingDocumentNumber;
 using Booking.Application.DataBase.Bookings.Queries.GetBookingType;
 using Booking.Application.Exceptions;
 using Booking.Application.Features;
-using Microsoft.AspNetCore.Http;
+using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Booking.Api.Controllers
@@ -18,8 +17,14 @@ namespace Booking.Api.Controllers
         [HttpPost("create")]
         public async Task<IActionResult> CreateBooking(
             [FromBody] CreateBookingModel model,
-            [FromServices] ICreateBookingCommand createBooking)
+            [FromServices] ICreateBookingCommand createBooking,
+            [FromServices] IValidator<CreateBookingModel> validator
+            )
         {
+            var validate = await  validator.ValidateAsync(model);
+            if (!validate.IsValid)
+                return StatusCode(StatusCodes.Status400BadRequest, ResponseApiService.Response(StatusCodes.Status400BadRequest, validate.Errors));
+
             var booking = await createBooking.ExecuteAsync(model);
             if (booking == null)
                 return StatusCode(StatusCodes.Status500InternalServerError, ResponseApiService.Response(StatusCodes.Status500InternalServerError, null, "Booking creation failed."));
