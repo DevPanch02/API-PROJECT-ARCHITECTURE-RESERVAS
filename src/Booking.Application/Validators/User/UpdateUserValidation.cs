@@ -1,11 +1,5 @@
-﻿using Booking.Application.DataBase.User.Command.CreateUser;
-using Booking.Application.DataBase.User.Command.UpdateUser;
+﻿using Booking.Application.DataBase.User.Command.UpdateUser;
 using FluentValidation;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Booking.Application.Validators.User
 {
