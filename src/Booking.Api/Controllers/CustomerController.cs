@@ -6,6 +6,7 @@ using Booking.Application.DataBase.Customer.Queries.GetCustomerById;
 using Booking.Application.DataBase.Customer.Queries.GetCustomerDocument;
 using Booking.Application.Exceptions;
 using Booking.Application.Features;
+using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Booking.Api.Controllers
@@ -19,8 +20,14 @@ namespace Booking.Api.Controllers
         [HttpPost("create")]
         public async Task<IActionResult> Create(
             [FromBody] CreateCustomerModel model,
-            [FromServices] ICreateCustomerCommand createCustomer)
+            [FromServices] ICreateCustomerCommand createCustomer,
+            [FromServices] IValidator<CreateCustomerModel> validator
+            )
         {
+            var validate = await validator.ValidateAsync(model);
+            if (!validate.IsValid)
+                return StatusCode(StatusCodes.Status400BadRequest, ResponseApiService.Response(StatusCodes.Status400BadRequest, validate.Errors));
+
             var customer = await createCustomer.ExecuteAsync(model);
             if (customer == null)
                 return StatusCode(StatusCodes.Status500InternalServerError, ResponseApiService.Response(StatusCodes.Status500InternalServerError, null, "User creation failed."));
